@@ -1,0 +1,137 @@
+\documentclass{report}
+% Change "article" to "report" to get rid of page number on title page
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
+\usepackage{setspace}
+\usepackage{Tabbing}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{extramarks}
+\usepackage{chngpage}
+\usepackage{soul,color}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{graphicx,float,wrapfig}
+\usepackage{pifont}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{tikz}
+\usepackage[]{algorithm2e}
+% In case you need to adjust margins:
+\topmargin=-0.45in      %
+\evensidemargin=0in     %
+\oddsidemargin=0in      %
+\textwidth=6.5in        %
+\textheight=9.0in       %
+\headsep=0.25in         %
+
+\title{Assignment 2 - Comp 632 - Machine Learning}
+
+% Homework Specific Information
+\newcommand{\hmwkTitle}{Assignment 2}                     % Adjust this
+\newcommand{\hmwkDueDate}{Wednesday, February 18 2015}                           % Adjust this
+\newcommand{\hmwkClass}{COMP 632}
+
+
+\newcommand{\hmwkClassInstructor}{Dr. Doina Precup}
+\newcommand{\hmwkAuthorName}{Geoffrey Stanley}
+\newcommand{\hmwkAuthorNumber}{260645907}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Ev}{\mathbb{E}}
+\newcommand{\cov}{\text{Cov}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\dd}{\, \mathrm{d}}
+
+% Setup the header and footer
+\pagestyle{fancy}                                                       %
+\lhead{\hmwkAuthorName}                              %
+\chead{}
+\rhead{\hmwkClass: \hmwkTitle}                                          %
+
+\lfoot{}
+\cfoot{}                                                                %
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}}                          %
+\renewcommand\headrulewidth{0.4pt}                                      %
+\renewcommand\footrulewidth{0.4pt}                                      %
+
+% This is used to trace down (pin point) problems
+% in latexing a document:
+%\tracingall
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\lstset{commentstyle=\color{mygreen}, frame=single,  language=R, showspaces=false, showstringspaces=false}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make title
+\title{\vspace{2in}\textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+\normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\
+\vspace{0.1in}\large{\textit{Presented to \hmwkClassInstructor}}\vspace{3in}}
+\date{}
+\author{\textbf{\hmwkAuthorName}\\
+    \textbf{Student ID: \hmwkAuthorNumber}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+\section*{Question 1}
+\subsection*{A)}
+For a function to be considered a kernel function the kernel matrix defined as
+$K_{ij}=K(x_i,x_j)$ must have two properties:
+\begin{enumerate}
+  \item be symmetric
+  \item be positive semidefinite
+\end{enumerate}
+As such, a Kernel matrix must abide by the following:
+\begin{equation}
+  K_{ij} = K_{ji}
+\end{equation}
+\begin{equation}
+  z^{T}Kz\geq 0
+\end{equation}
+Where $z$ is an arbitrary vector.
+\subsection*{B)}
+As $l$ increases words will have a tendency of having higher scores when compared
+with itself then any other words. This will result in a diagonal matrix.
+\subsection*{C)}
+Yes.
+\subsection*{D)}
+
+\section*{Question 2}
+\subsection*{A)}
+\includegraphics[width=175px, keepaspectratio]{3points.jpg}
+\subsection*{B)}
+The VC-dimension of this hypthesis class is 4. This is because it can successfully
+all configurations of 4 points. However, it would not be able to do so for all
+configuration of 5 points.
+\subsection*{C)}
+The VC-dimension of any type of boolean combination of 2 linear classifiers is
+also 4.
+
+\section*{Question 3}
+\subsection*{A)}
+\begin{equation}
+  P(K | x, h^K) = 1-\sum_{i=1}^{K-1} h^i(x)
+\end{equation}
+
+\begin{equation}
+  \log L (h) = \sum_{i=1}^{m}
+  \log P(y_i | x_i, h)
+\end{equation}
+
+\begin{equation}
+  \log L (h) = \sum_{i=1}^{m} \log
+  \left(
+  1-\sum_{j=1}^{y_i-1}h^j(x_i)
+  \right)
+\end{equation}
+
+\subsection*{B)}
+\subsection*{C)}
+
+\section*{Question 4}
+\subsection*{A)}
+\subsection*{B)}
+\subsection*{C)}
+\subsection*{D)}
+\subsection*{E)}
+
+\end{document}
