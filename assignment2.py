@@ -25,15 +25,21 @@ def five_fold_cross_validation(feature_array, target_vector):
                 training_data = numpy.append(training_data, five_folds[j], axis=0)
 
 
-    # split the training data into features and targets
-    training_features = training_data[:, 0:training_data.shape[1]-1]
-    training_target = training_data[:, training_data.shape[1]-1]
+        # split the training data into features and targets
+        training_features = training_data[:, 0:training_data.shape[1]-1]
+        training_target = training_data[:, training_data.shape[1]-1]
 
+        logReg = LogisticRegression()
+        logReg.fit(training_features, training_target)
 
-    # split the testing data into features and targets
-    testing_features = testing_data[:, 0:testing_data.shape[1]-1]
-    testing_target = testing_data[:, testing_data.shape[1]-1]
+        # split the testing data into features and targets
+        testing_features = testing_data[:, 0:testing_data.shape[1]-1]
+        testing_target = testing_data[:, testing_data.shape[1]-1]
 
+        print logReg.predict_proba(testing_features)
+        print logReg.predict(testing_features)
+        print testing_target
+        print
 
 if __name__ == '__main__':
 
@@ -42,13 +48,13 @@ if __name__ == '__main__':
 
     five_fold_cross_validation(array_x, vector_y)
 
-    print array_x.shape
-
-    logReg = LogisticRegression()
-    logReg.fit(array_x, vector_y)
-
-    log_probability = logReg.predict_log_proba(array_x)
-
-    print logReg.coef_.shape
-    print log_probability.shape
-    print log_probability
+    # print array_x.shape
+    #
+    # logReg = LogisticRegression()
+    # logReg.fit(array_x, vector_y)
+    #
+    # log_probability = logReg.predict_log_proba(array_x)
+    #
+    # print logReg.coef_.shape
+    # print log_probability.shape
+    # print log_probability
