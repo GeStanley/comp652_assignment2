@@ -117,6 +117,15 @@ def gaussian_discriminant_analysis(training_features, training_targets, testing_
     train_data_set = numpy.append(training_features, training_targets[:, numpy.newaxis], axis=1)
     test_data_set = numpy.append(testing_features, testing_targets[:, numpy.newaxis], axis=1)
 
+    train_log_likelihoods = numpy.empty([training_features.shape[0], 2], dtype=float)
+    test_log_likelihoods = numpy.empty([testing_features.shape[0], 2], dtype=float)
+
+    train_avg_likelihood = numpy.array([[0, 0]])
+    test_avg_likelihood = numpy.array([[0, 0]])
+
+    train_prediction = numpy.empty([training_features.shape[0], 1], dtype=int)
+    test_prediction = numpy.empty([testing_features.shape[0], 1], dtype=int)
+
     for y in range(0, 2):
         train_sub_set = train_data_set[train_data_set[:, train_data_set.shape[1] - 1] == y, :-1]
 
@@ -126,18 +135,35 @@ def gaussian_discriminant_analysis(training_features, training_targets, testing_
 
         n = train_data_set.shape[0]
 
-
-        
-
-        for i in range(0, n-1):
+        for i in range(0, train_data_set.shape[0]-1):
             row = train_data_set[i, :-1]
 
             exponent = gaussian_multivariate_exponent_calculation(row, mean, covariance_matrix)
             denominator = gaussian_multivariate_denominator_calculation(n, covariance_matrix)
 
-            model_output[i, y] = (1/denominator) * exponent
+            train_log_likelihoods[i, y] = (1/denominator) * exponent
 
-    return model_output
+        for i in range(0, test_data_set.shape[0]-1):
+            row = test_data_set[i, :-1]
+
+            exponent = gaussian_multivariate_exponent_calculation(row, mean, covariance_matrix)
+            denominator = gaussian_multivariate_denominator_calculation(n, covariance_matrix)
+
+            test_log_likelihoods[i, y] = (1/denominator) * exponent
+
+
+    print train_log_likelihoods
+    print test_log_likelihoods
+
+    train_avg_likelihood = numpy.average(train_log_likelihoods, axis=0)
+    test_avg_likelihood = numpy.average(test_log_likelihoods, axis=0)
+
+    fold_data = {'log L train': train_avg_likelihood,
+                 'log L test': test_avg_likelihood,
+                 'training accuracy': 0,
+                 'testing accuracy': 0}
+
+    return fold_data
 
 # def covariance(vector_a, vector_b):
 #
@@ -231,14 +257,18 @@ if __name__ == '__main__':
     array_x = numpy.loadtxt('wpbcx.dat', float)
     vector_y = numpy.loadtxt('wpbcy.dat', float)
 
-    #stats = gaussian_discriminant_analysis(array_x, vector_y)
-    stats = five_fold_cross_validation(array_x, vector_y)
+    stats = five_fold_cross_validation(array_x, vector_y, model='bayesian')
+    #stats = five_fold_cross_validation(array_x, vector_y, model='logistic')
 
     print stats
 
+    #generate_latex_table(stats)
+
+
+
     #weights = logistic_regression(array_x, vector_y)
 
-    generate_latex_table(stats)
+
     # logReg = LogisticRegression()
     # logReg.fit(array_x, vector_y)
     #
