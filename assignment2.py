@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.utils import shuffle
 
 
-def five_fold_cross_validation(feature_array, target_vector):
+def five_fold_cross_validation(feature_array, target_vector, model):
 
     complete_array = numpy.append(feature_array, target_vector[:, numpy.newaxis], axis=1)
 
@@ -32,31 +32,44 @@ def five_fold_cross_validation(feature_array, target_vector):
         training_features = training_data[:, 0:training_data.shape[1]-1]
         training_target = training_data[:, training_data.shape[1]-1]
 
-        logReg = LogisticRegression()
-        logReg.fit(training_features, training_target)
-
         # split the testing data into features and targets
         testing_features = testing_data[:, 0:testing_data.shape[1]-1]
         testing_target = testing_data[:, testing_data.shape[1]-1]
 
-        training_average = numpy.average(logReg.predict_proba(training_features), axis=0)
-        testing_average = numpy.average(logReg.predict_proba(testing_features), axis=0)
-
-        training_accurate = numpy.sum(logReg.predict(training_features) == training_target)
-        training_accuracy = float(training_accurate) / float(training_target.size)
-
-        testing_accurate = numpy.sum(logReg.predict(testing_features) == testing_target)
-        testing_accuracy = float(testing_accurate) / float(testing_target.size)
-
-        fold_data = {'log L train': training_average,
-                     'log L test': testing_average,
-                     'training accuracy': training_accuracy,
-                     'testing accuracy': testing_accuracy}
-
-        returned_statistics[i] = fold_data
+        if model == 'logistic':
+            returned_statistics[i] = logistic_regression(training_features,
+                                                     training_target,
+                                                     testing_features,
+                                                     testing_target)
+        elif model == 'bayesian':
+            returned_statistics[i] = gaussian_discriminant_analysis(training_features,
+                                                     training_target,
+                                                     testing_features,
+                                                     testing_target)
 
 
     return returned_statistics
+
+def logistic_regression(training_features, training_targets, testing_features, testing_targets):
+
+    logReg = LogisticRegression()
+    logReg.fit(training_features, training_targets)
+
+    training_average = numpy.average(logReg.predict_log_proba(training_features), axis=0)
+    testing_average = numpy.average(logReg.predict_log_proba(testing_features), axis=0)
+
+    training_accurate = numpy.sum(logReg.predict(training_features) == training_targets)
+    training_accuracy = float(training_accurate) / float(training_targets.size)
+
+    testing_accurate = numpy.sum(logReg.predict(testing_features) == testing_targets)
+    testing_accuracy = float(testing_accurate) / float(testing_targets.size)
+
+    fold_data = {'log L train': training_average,
+                 'log L test': testing_average,
+                 'training accuracy': training_accuracy,
+                 'testing accuracy': testing_accuracy}
+
+    return fold_data
 # def calculate_sigmoid_hypothesis(weights, feature_vector):
 #
 #     exponent = numpy.dot(weights.T, feature_vector)
@@ -98,26 +111,56 @@ def five_fold_cross_validation(feature_array, target_vector):
 #
 #     return weights
 
-def covariance(vector_a, vector_b):
+def gaussian_discriminant_analysis(training_features, training_targets, testing_features, testing_targets):
+    #p(x |  y = 0 ) = 1/(2*pie)
 
-    N = vector_a.shape[1] - 1
+    train_data_set = numpy.append(training_features, training_targets[:, numpy.newaxis], axis=1)
+    test_data_set = numpy.append(testing_features, testing_targets[:, numpy.newaxis], axis=1)
 
-    a_avg = numpy.mean(vector_a)
-    b_avg = numpy.mean(vector_b)
+    for y in range(0, 2):
+        train_sub_set = train_data_set[train_data_set[:, train_data_set.shape[1] - 1] == y, :-1]
 
-    error_a = vector_a - a_avg
-    error_b = vector_b - b_avg
+        mean = numpy.mean(train_sub_set, axis=0)
 
-    return numpy.dot(error_a, error_b.T) / N
+        covariance_matrix = numpy.cov(train_sub_set.T)
 
-def buildCovarianceMatrix(feature_array, type='full'):
+        n = train_data_set.shape[0]
 
-    if type == 'full':
-        return 1
-    elif type == 'diagonal':
-        return 0
-    else:
-        return 'error'
+
+        
+
+        for i in range(0, n-1):
+            row = train_data_set[i, :-1]
+
+            exponent = gaussian_multivariate_exponent_calculation(row, mean, covariance_matrix)
+            denominator = gaussian_multivariate_denominator_calculation(n, covariance_matrix)
+
+            model_output[i, y] = (1/denominator) * exponent
+
+    return model_output
+
+# def covariance(vector_a, vector_b):
+#
+#     N = vector_a.shape[1] - 1
+#
+#     a_avg = numpy.mean(vector_a)
+#     b_avg = numpy.mean(vector_b)
+#
+#     error_a = vector_a - a_avg
+#     error_b = vector_b - b_avg
+#
+#     return numpy.dot(error_a, error_b.T) / N
+
+
+# def buildCovarianceMatrix(feature_array, type='full'):
+#
+#     if type == 'full':
+#         return 1
+#     elif type == 'diagonal':
+#         return 0
+#     else:
+#         return 'error'
+
 
 def gaussian_multivariate_exponent_calculation(x_vector, x_mean, covariance_matrix):
 
@@ -131,6 +174,7 @@ def gaussian_multivariate_exponent_calculation(x_vector, x_mean, covariance_matr
 
     return numpy.exp(1.0/2.0 * calculation)
 
+
 def gaussian_multivariate_denominator_calculation(n, covariance_matrix):
 
     determinant = numpy.linalg.det(covariance_matrix)
@@ -139,35 +183,47 @@ def gaussian_multivariate_denominator_calculation(n, covariance_matrix):
 
     return numpy.sqrt(root)
 
-def gaussian_discriminant_analysis(feature_array, target_vector):
-    #p(x |  y = 0 ) = 1/(2*pie)
 
-    data_set = numpy.append(feature_array, target_vector[:, numpy.newaxis], axis=1)
+def generate_latex_table(table_dict):
+    print '\\begin{table}[h]'
+    print ' \\begin{tabular}{l|l|l|l|l|l|l|l|l|l|l|}'
+    print ' \\cline{2-11}'
 
-    model_output = numpy.empty([feature_array.shape[0], 2], dtype=float)
+    print '     & \\multicolumn{10}{c|}{Folds}      \\\\ \\cline{2-11}'
+    print '     & \\multicolumn{2}{c|}{1} & \\multicolumn{2}{c|}{2} & \\multicolumn{2}{c|}{3} & \\multicolumn{2}{c|}{4} & \\multicolumn{2}{c|}{5} \\\\ \\hline'
 
-    cov_matrix = 0
 
-    for y in range(0, 2):
-        sub_set = data_set[data_set[:, data_set.shape[1] - 1] == y, :-1]
+    print '\\multicolumn{1}{|c|}{log L Train} & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f \\\\ \\hline' % \
+          (table_dict[0]['log L train'][0], table_dict[0]['log L train'][1],
+           table_dict[1]['log L train'][0], table_dict[1]['log L train'][1],
+           table_dict[2]['log L train'][0], table_dict[2]['log L train'][1],
+           table_dict[3]['log L train'][0], table_dict[3]['log L train'][1],
+           table_dict[4]['log L train'][0], table_dict[4]['log L train'][1])
 
-        mean = numpy.mean(sub_set, axis=0)
+    print '\\multicolumn{1}{|c|}{log L Test} & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f \\\\ \\hline' % \
+          (table_dict[0]['log L test'][0], table_dict[0]['log L test'][1],
+           table_dict[1]['log L test'][0], table_dict[1]['log L test'][1],
+           table_dict[2]['log L test'][0], table_dict[2]['log L test'][1],
+           table_dict[3]['log L test'][0], table_dict[3]['log L test'][1],
+           table_dict[4]['log L test'][0], table_dict[4]['log L test'][1])
 
-        numpy.savetxt('subsetT.out', sub_set.T, delimiter=',')
 
-        covariance_matrix = numpy.cov(sub_set.T)
+    print '\\multicolumn{1}{|l|}{Training Accuracy} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} \\\\ \\hline' % \
+          (table_dict[0]['training accuracy'],
+           table_dict[1]['training accuracy'],
+           table_dict[2]['training accuracy'],
+           table_dict[3]['training accuracy'],
+           table_dict[4]['training accuracy'])
 
-        n = data_set.shape[0]
+    print '\\multicolumn{1}{|l|}{Testing Accuracy} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} \\\\ \\hline' % \
+          (table_dict[0]['testing accuracy'],
+           table_dict[1]['testing accuracy'],
+           table_dict[2]['testing accuracy'],
+           table_dict[3]['testing accuracy'],
+           table_dict[4]['testing accuracy'])
 
-        for i in range(0, n-1):
-            row = data_set[i, :-1]
-
-            exponent = gaussian_multivariate_exponent_calculation(row, mean, covariance_matrix)
-            denominator = gaussian_multivariate_denominator_calculation(n, covariance_matrix)
-
-            model_output[i, y] = (1/denominator) * exponent
-
-    return model_output
+    print '\\end{tabular}'
+    print '\\end{table}'
 
 
 if __name__ == '__main__':
@@ -175,14 +231,14 @@ if __name__ == '__main__':
     array_x = numpy.loadtxt('wpbcx.dat', float)
     vector_y = numpy.loadtxt('wpbcy.dat', float)
 
-    stats = gaussian_discriminant_analysis(array_x, vector_y)
-    #stats = five_fold_cross_validation(array_x, vector_y)
+    #stats = gaussian_discriminant_analysis(array_x, vector_y)
+    stats = five_fold_cross_validation(array_x, vector_y)
 
     print stats
 
     #weights = logistic_regression(array_x, vector_y)
 
-
+    generate_latex_table(stats)
     # logReg = LogisticRegression()
     # logReg.fit(array_x, vector_y)
     #
