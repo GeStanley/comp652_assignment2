@@ -100,7 +100,7 @@ Yes.
 \includegraphics[width=175px, keepaspectratio]{3points.jpg}
 \subsection*{B)}
 The VC-dimension of this hypthesis class is 4. This is because it can successfully
-all configurations of 4 points. However, it would not be able to do so for all
+shatter all configurations of 4 points. However, it would not be able to do so for all
 configuration of 5 points.
 \subsection*{C)}
 The VC-dimension of any type of boolean combination of 2 linear classifiers is
@@ -108,21 +108,24 @@ also 4.
 
 \section*{Question 3}
 \subsection*{A)}
-\begin{equation}
-  P(K | x, h^K) = 1-\sum_{i=1}^{K-1} h^i(x)
-\end{equation}
+Given the log-likelihood of a hypothesis $h$ :
 
 \begin{equation}
-  \log L (h) = \sum_{i=1}^{m}
-  \log P(y_i | x_i, h)
+  \log L(h) = \sum_{i=1}^{m} \log P(y_i|x_i,h)
 \end{equation}
 
+And the probability of an example x belonging to class K as being :
+
 \begin{equation}
-  \log L (h) = \sum_{i=1}^{m} \log
-  \left(
-  1-\sum_{j=1}^{y_i-1}h^j(x_i)
-  \right)
+  P(K | x) = 1 - \sum_{i=1}^{K-1}h^i(x)
 \end{equation}
+
+We can derive the log likelihood for a set of hypotheses and a given data set D as:
+
+\begin{equation}
+  \log L(h) = \sum_{i=1}^{m} \sum_{j=1}^{K} \log \left( 1 - \sum_{l=1}^{K-1}h^l(x_i) \right)
+\end{equation}
+
 
 \subsection*{B)}
 \subsection*{C)}
