@@ -38,17 +38,18 @@ def five_fold_cross_validation(feature_array, target_vector, model):
 
         if model == 'logistic':
             returned_statistics[i] = logistic_regression(training_features,
-                                                     training_target,
-                                                     testing_features,
-                                                     testing_target)
+                                                         training_target,
+                                                         testing_features,
+                                                         testing_target)
         elif model == 'bayesian':
             returned_statistics[i] = gaussian_discriminant_analysis(training_features,
-                                                     training_target,
-                                                     testing_features,
-                                                     testing_target)
+                                                                    training_target,
+                                                                    testing_features,
+                                                                    testing_target)
 
 
     return returned_statistics
+
 
 def logistic_regression(training_features, training_targets, testing_features, testing_targets):
 
@@ -111,8 +112,8 @@ def logistic_regression(training_features, training_targets, testing_features, t
 #
 #     return weights
 
+
 def gaussian_discriminant_analysis(training_features, training_targets, testing_features, testing_targets):
-    #p(x |  y = 0 ) = 1/(2*pie)
 
     train_data_set = numpy.append(training_features, training_targets[:, numpy.newaxis], axis=1)
     test_data_set = numpy.append(testing_features, testing_targets[:, numpy.newaxis], axis=1)
@@ -120,73 +121,68 @@ def gaussian_discriminant_analysis(training_features, training_targets, testing_
     train_log_likelihoods = numpy.empty([training_features.shape[0], 2], dtype=float)
     test_log_likelihoods = numpy.empty([testing_features.shape[0], 2], dtype=float)
 
-    train_avg_likelihood = numpy.array([[0, 0]])
-    test_avg_likelihood = numpy.array([[0, 0]])
-
-    train_prediction = numpy.empty([training_features.shape[0], 1], dtype=int)
-    test_prediction = numpy.empty([testing_features.shape[0], 1], dtype=int)
-
     for y in range(0, 2):
         train_sub_set = train_data_set[train_data_set[:, train_data_set.shape[1] - 1] == y, :-1]
 
+        prior = float(train_sub_set.shape[0]) / float(train_data_set.shape[0])
         mean = numpy.mean(train_sub_set, axis=0)
-
-        covariance_matrix = numpy.cov(train_sub_set.T)
-
-        n = train_data_set.shape[0]
+        covariance_matrix = numpy.cov(train_data_set[:, :-1].T)
 
         for i in range(0, train_data_set.shape[0]-1):
             row = train_data_set[i, :-1]
 
-            exponent = gaussian_multivariate_exponent_calculation(row, mean, covariance_matrix)
-            denominator = gaussian_multivariate_denominator_calculation(n, covariance_matrix)
-
-            train_log_likelihoods[i, y] = (1/denominator) * exponent
+            train_log_likelihoods[i, y] = gaussian_log_likelihood_calculation(prior, mean, covariance_matrix, row)
 
         for i in range(0, test_data_set.shape[0]-1):
             row = test_data_set[i, :-1]
 
-            exponent = gaussian_multivariate_exponent_calculation(row, mean, covariance_matrix)
-            denominator = gaussian_multivariate_denominator_calculation(n, covariance_matrix)
+            test_log_likelihoods[i, y] = gaussian_log_likelihood_calculation(prior, mean, covariance_matrix, row)
 
-            test_log_likelihoods[i, y] = (1/denominator) * exponent
+    train_prediction = gaussian_classify(train_log_likelihoods)
+    test_prediction = gaussian_classify(test_log_likelihoods)
 
+    training_accurate = numpy.sum(train_prediction == training_targets)
+    training_accuracy = float(training_accurate) / float(training_targets.size)
 
-    print train_log_likelihoods
-    print test_log_likelihoods
+    testing_accurate = numpy.sum(test_prediction == testing_targets)
+    testing_accuracy = float(testing_accurate) / float(testing_targets.size)
 
     train_avg_likelihood = numpy.average(train_log_likelihoods, axis=0)
     test_avg_likelihood = numpy.average(test_log_likelihoods, axis=0)
 
     fold_data = {'log L train': train_avg_likelihood,
                  'log L test': test_avg_likelihood,
-                 'training accuracy': 0,
-                 'testing accuracy': 0}
+                 'training accuracy': training_accuracy,
+                 'testing accuracy': testing_accuracy}
 
     return fold_data
 
-# def covariance(vector_a, vector_b):
-#
-#     N = vector_a.shape[1] - 1
-#
-#     a_avg = numpy.mean(vector_a)
-#     b_avg = numpy.mean(vector_b)
-#
-#     error_a = vector_a - a_avg
-#     error_b = vector_b - b_avg
-#
-#     return numpy.dot(error_a, error_b.T) / N
+def gaussian_log_likelihood_calculation(prior, mean, covariance_matrix, features):
+
+    inverse = numpy.linalg.inv(covariance_matrix)
+
+    left = math.log(prior)
+
+    dot = numpy.dot(features.T, inverse)
+    mid = numpy.dot(dot, mean)
+
+    dot = numpy.dot(mean.T, inverse)
+    right = numpy.dot(dot, mean)
+
+    return left + mid - 1/2 * right
 
 
-# def buildCovarianceMatrix(feature_array, type='full'):
-#
-#     if type == 'full':
-#         return 1
-#     elif type == 'diagonal':
-#         return 0
-#     else:
-#         return 'error'
+def gaussian_classify(likelihood_array):
 
+    prediction = numpy.empty([likelihood_array.shape[0]], dtype=int)
+
+    for i in range(0, likelihood_array.shape[0]):
+        if likelihood_array[i, 0] > likelihood_array[i, 1]:
+            prediction[i] = 0
+        else:
+            prediction[i] = 1
+
+    return prediction
 
 def gaussian_multivariate_exponent_calculation(x_vector, x_mean, covariance_matrix):
 
@@ -198,14 +194,14 @@ def gaussian_multivariate_exponent_calculation(x_vector, x_mean, covariance_matr
 
     calculation = numpy.dot(dot, difference)
 
-    return numpy.exp(1.0/2.0 * calculation)
+    return numpy.exp(-1.0/2.0 * calculation)
 
 
-def gaussian_multivariate_denominator_calculation(n, covariance_matrix):
+def gaussian_multivariate_denominator_calculation(k, covariance_matrix):
 
     determinant = numpy.linalg.det(covariance_matrix)
 
-    root = ((2 * numpy.pi) ** n) * determinant
+    root = ((2 * numpy.pi) ** k) * determinant
 
     return numpy.sqrt(root)
 
@@ -260,9 +256,10 @@ if __name__ == '__main__':
     stats = five_fold_cross_validation(array_x, vector_y, model='bayesian')
     #stats = five_fold_cross_validation(array_x, vector_y, model='logistic')
 
+
     print stats
 
-    #generate_latex_table(stats)
+    generate_latex_table(stats)
 
 
 
