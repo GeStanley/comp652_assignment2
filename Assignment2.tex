@@ -87,7 +87,41 @@ As such, a Kernel matrix must abide by the following:
 \begin{equation}
   z^{T}Kz\geq 0
 \end{equation}
-Where $z$ is an arbitrary vector.
+Where $z$ is an arbitrary vector. \\
+
+A kernel function is also one that can be expressed as a dot product of the feature
+vectors of the instances:
+\begin{equation}
+  K(x,z) = \phi (x) \cdot \phi (x)
+\end{equation}
+where $\phi$ is a feature maping of input features to a vector space. Further more,
+as described by Bishop(2006) p.296 a kernel function can be a construction of kernel
+functions such that
+\begin{equation}
+  k(x,z) = k_1(x,z) + k_2(x,z)
+\end{equation}
+In this particular case it would be usefull to decompose our $K_l$ kernal function
+into:
+\begin{equation}
+  k_l(x,z) = k_1(x,z) + k_2(x,z) + ... + k_l(x,z)
+\end{equation}
+where the components of the decomposition evaluate the similarity of a particular
+character length such that $k_1('ar','ark')=1$ and $k_2('ar','ark')=2$. Now, in order
+to show that $K_l$ is a kernal function, we are left with having to create a feature
+mapping onto some vector where dot products of those vector would result in the
+similarity required.
+
+For simplicity let's define our alphabet as being ${a,b,c}$
+and our mapping to be onto a three dimensional vector representing our alphabet.
+Now we can map an input string such as "ab" onto a vector $x=[1,1,0]$. Given another
+string "bc" we can create $y=[0,1,1]$ where $x^Ty=1$. Expanding this mapping into
+longer character combinations we can now define our vector space as being all combination
+of character sequences of length 1 through $l$.
+
+We now have multiple functions that can
+be expressed in terms of a dot product of vectors whose sum is equal to our original $K_l$
+function and have thus demonstrated that it is a kernal function.
+
 \subsection*{B)}
 As $l$ increases words will have a tendency of having higher scores when compared
 with itself then any other words. This will result in a diagonal matrix.
@@ -134,14 +168,14 @@ We can derive the log likelihood for a set of hypotheses and a given data set D 
 \subsection*{A)}
 \begin{center}
 \begin{table}[h]
- \begin{tabular}{l|l|l|l|l|l|l|l|l|l|l|}
- \cline{2-11}
-     & \multicolumn{10}{c|}{Folds}      \\ \cline{2-11}
-     & \multicolumn{2}{c|}{1} & \multicolumn{2}{c|}{2} & \multicolumn{2}{c|}{3} & \multicolumn{2}{c|}{4} & \multicolumn{2}{c|}{5} \\ \hline
-\multicolumn{1}{|c|}{log L Train} & -0.340 & -1.763 & -0.305 & -1.772 & -0.313 & -1.718 & -0.340 & -1.639 & -0.321 & -1.712 \\ \hline
-\multicolumn{1}{|c|}{log L Test} & -0.431 & -1.632 & -0.284 & -1.806 & -0.319 & -1.696 & -0.324 & -1.561 & -0.329 & -1.801 \\ \hline
-\multicolumn{1}{|l|}{Training Accuracy} & \multicolumn{2}{c|}{0.81\%} & \multicolumn{2}{c|}{0.81\%} & \multicolumn{2}{c|}{0.83\%} & \multicolumn{2}{c|}{0.81\%} & \multicolumn{2}{c|}{0.80\%} \\ \hline
-\multicolumn{1}{|l|}{Testing Accuracy} & \multicolumn{2}{c|}{0.69\%} & \multicolumn{2}{c|}{0.69\%} & \multicolumn{2}{c|}{0.72\%} & \multicolumn{2}{c|}{0.87\%} & \multicolumn{2}{c|}{0.71\%} \\ \hline
+ \begin{tabular}{l|c|c|c|c|c|}
+ \cline{2-6}
+     & \multicolumn{5}{c|}{Folds}      \\ \cline{2-6}
+     &  1  &  2  &  3  &  4  &  5 \\ \hline
+\multicolumn{1}{|l|}{log L Train} & -2.103 & -2.077 & -2.031 & -1.979 & -2.033  \\ \hline
+\multicolumn{1}{|l|}{log L Test} & -2.064 & -2.090 & -2.016 & -1.885 & -2.129  \\ \hline
+\multicolumn{1}{|l|}{Training Accuracy} & 0.81\% & 0.81\% & 0.83\% & 0.81\% & 0.80\% \\ \hline
+\multicolumn{1}{|l|}{Testing Accuracy} & 0.69\% & 0.69\% & 0.72\% & 0.87\% & 0.71\% \\ \hline
 \end{tabular}
 \end{table}
 \end{center}
