@@ -106,7 +106,7 @@ into:
   k_l(x,z) = k_1(x,z) + k_2(x,z) + ... + k_l(x,z)
 \end{equation}
 where the components of the decomposition evaluate the similarity of a particular
-character length such that $k_1('ar','ark')=1$ and $k_2('ar','ark')=2$. Now, in order
+character length such that $k_1"ar","ark")=1$ and $k_2("ar","ark")=2$. Now, in order
 to show that $K_l$ is a kernal function, we are left with having to create a feature
 mapping onto some vector where dot products of those vector would result in the
 similarity required.
@@ -123,11 +123,33 @@ be expressed in terms of a dot product of vectors whose sum is equal to our orig
 function and have thus demonstrated that it is a kernal function.
 
 \subsection*{B)}
-As $l$ increases words will have a tendency of having higher scores when compared
-with itself then any other words. This will result in a diagonal matrix.
+Two differences will be noticeable between the kernal matrices $K_l$ and $K_{l+1}$.
+The first will be that the values of points $K_ij$ in the matrix where the similarities
+between words are of more importance will increase by atleast 1. Secondly, the points
+along the diagonal of the matrix where $i=j$ will necessarily increase there the
+length of the words is greater then or equal to $l+1$. As such, the result will be that
+the values along the diagonal of the matrix will necessarily increase by atleast
+the same amount as other values in their respective rows and columns.
+
+Therefor, the tendency of the matrix is to become more diagonal in nature as $l$
+increases. Which will result in a model that tends more towards over fitting.
+
+In order to avoid this problem a methodology such as five fold cross validation
+should be used in order to identify an optimum value for $l$. The objective would be
+to identify at which value of $l$ the algorithm has a tendency of generating smaller
+error during training then during testing and to use an $l$ that is smaller in value
+then this.
 \subsection*{C)}
 Yes.
 \subsection*{D)}
+Yes. One would be able to use the same methodology I used above to demonstrate this.
+In order to implement such an approach one would simply have to alter the string to vector
+mapping definition used. 
+
+More precisely, instead of associating a value of 1 to all character
+sequences one could associate different values according to their desired importance. For
+example, when a string contains the sequence "ar" the mapping could put a value of 2
+to the dimension associated to this sequence but 1 to all others.
 
 \section*{Question 2}
 \subsection*{A)}
@@ -148,16 +170,19 @@ Given the log-likelihood of a hypothesis $h$ :
   \log L(h) = \sum_{i=1}^{m} \log P(y_i|x_i,h)
 \end{equation}
 
-And the probability of an example x belonging to class K as being :
+And the probability of an example x belonging to class k as being :
 
 \begin{equation}
-  P(K | x) = 1 - \sum_{i=1}^{K-1}h^i(x)
+  P(k | x) = 1 - \sum_{i=1}^{K-1}h_i(x)
 \end{equation}
 
 We can derive the log likelihood for a set of hypotheses and a given data set D as:
 
 \begin{equation}
-  \log L(h) = \sum_{i=1}^{m} \sum_{j=1}^{K} \log \left( 1 - \sum_{l=1}^{K-1}h^l(x_i) \right)
+  \log L(D) = \sum_{i=1}^{m} \log
+  \left( 1 -
+  \sum_{j=1}^{K} h_j(x_i)
+  \right)
 \end{equation}
 
 
