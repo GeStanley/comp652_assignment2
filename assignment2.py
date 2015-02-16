@@ -56,8 +56,10 @@ def logistic_regression(training_features, training_targets, testing_features, t
     logReg = LogisticRegression()
     logReg.fit(training_features, training_targets)
 
-    training_average = numpy.average(logReg.predict_log_proba(training_features), axis=0)
-    testing_average = numpy.average(logReg.predict_log_proba(testing_features), axis=0)
+    training_average = average_example_log_likelihood(logReg.predict_log_proba(training_features),
+                                                      training_targets)
+    testing_average = average_example_log_likelihood(logReg.predict_log_proba(testing_features),
+                                                     testing_targets)
 
     training_accurate = numpy.sum(logReg.predict(training_features) == training_targets)
     training_accuracy = float(training_accurate) / float(training_targets.size)
@@ -71,6 +73,20 @@ def logistic_regression(training_features, training_targets, testing_features, t
                  'testing accuracy': testing_accuracy}
 
     return fold_data
+
+def average_example_log_likelihood(class_likelihoods, targets):
+
+    log_likelihood_sum = 0
+
+    m = class_likelihoods.shape[0]
+
+    for i in range(0, m):
+
+        log_likelihood_sum += class_likelihoods[i, targets[i]]
+
+    return log_likelihood_sum / m
+
+
 # def calculate_sigmoid_hypothesis(weights, feature_vector):
 #
 #     exponent = numpy.dot(weights.T, feature_vector)
@@ -184,27 +200,6 @@ def gaussian_classify(likelihood_array):
 
     return prediction
 
-def gaussian_multivariate_exponent_calculation(x_vector, x_mean, covariance_matrix):
-
-    difference = x_vector - x_mean
-
-    inverse = numpy.linalg.inv(covariance_matrix)
-
-    dot = numpy.dot(difference.T, inverse)
-
-    calculation = numpy.dot(dot, difference)
-
-    return numpy.exp(-1.0/2.0 * calculation)
-
-
-def gaussian_multivariate_denominator_calculation(k, covariance_matrix):
-
-    determinant = numpy.linalg.det(covariance_matrix)
-
-    root = ((2 * numpy.pi) ** k) * determinant
-
-    return numpy.sqrt(root)
-
 
 def generate_latex_table(table_dict):
     print '\\begin{table}[h]'
@@ -253,8 +248,8 @@ if __name__ == '__main__':
     array_x = numpy.loadtxt('wpbcx.dat', float)
     vector_y = numpy.loadtxt('wpbcy.dat', float)
 
-    stats = five_fold_cross_validation(array_x, vector_y, model='bayesian')
-    #stats = five_fold_cross_validation(array_x, vector_y, model='logistic')
+    #stats = five_fold_cross_validation(array_x, vector_y, model='bayesian')
+    stats = five_fold_cross_validation(array_x, vector_y, model='logistic')
 
 
     print stats
