@@ -203,36 +203,35 @@ def gaussian_classify(likelihood_array):
 
 def generate_latex_table(table_dict):
     print '\\begin{table}[h]'
-    print ' \\begin{tabular}{l|l|l|l|l|l|l|l|l|l|l|}'
-    print ' \\cline{2-11}'
+    print ' \\begin{tabular}{l|c|c|c|c|c|}'
+    print ' \\cline{2-6}'
 
-    print '     & \\multicolumn{10}{c|}{Folds}      \\\\ \\cline{2-11}'
-    print '     & \\multicolumn{2}{c|}{1} & \\multicolumn{2}{c|}{2} & \\multicolumn{2}{c|}{3} & \\multicolumn{2}{c|}{4} & \\multicolumn{2}{c|}{5} \\\\ \\hline'
+    print '     & \\multicolumn{5}{c|}{Folds}      \\\\ \\cline{2-6}'
+    print '     &  1  &  2  &  3  &  4  &  5 \\ \hline'
+
+    print '\\multicolumn{1}{|c|}{log L Train} & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f  \\\\ \\hline' % \
+          (table_dict[0]['log L train'],
+           table_dict[1]['log L train'],
+           table_dict[2]['log L train'],
+           table_dict[3]['log L train'],
+           table_dict[4]['log L train'])
+
+    print '\\multicolumn{1}{|c|}{log L Test} & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f  \\\\ \\hline' % \
+          (table_dict[0]['log L test'],
+           table_dict[1]['log L test'],
+           table_dict[2]['log L test'],
+           table_dict[3]['log L test'],
+           table_dict[4]['log L test'])
 
 
-    print '\\multicolumn{1}{|c|}{log L Train} & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f \\\\ \\hline' % \
-          (table_dict[0]['log L train'][0], table_dict[0]['log L train'][1],
-           table_dict[1]['log L train'][0], table_dict[1]['log L train'][1],
-           table_dict[2]['log L train'][0], table_dict[2]['log L train'][1],
-           table_dict[3]['log L train'][0], table_dict[3]['log L train'][1],
-           table_dict[4]['log L train'][0], table_dict[4]['log L train'][1])
-
-    print '\\multicolumn{1}{|c|}{log L Test} & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f \\\\ \\hline' % \
-          (table_dict[0]['log L test'][0], table_dict[0]['log L test'][1],
-           table_dict[1]['log L test'][0], table_dict[1]['log L test'][1],
-           table_dict[2]['log L test'][0], table_dict[2]['log L test'][1],
-           table_dict[3]['log L test'][0], table_dict[3]['log L test'][1],
-           table_dict[4]['log L test'][0], table_dict[4]['log L test'][1])
-
-
-    print '\\multicolumn{1}{|l|}{Training Accuracy} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} \\\\ \\hline' % \
+    print '\\multicolumn{1}{|l|}{Training Accuracy} & %4.2f\\%% & %4.2f\\%% & %4.2f\\%% & %4.2f\\%% & %4.2f\\%% \\\\ \\hline' % \
           (table_dict[0]['training accuracy'],
            table_dict[1]['training accuracy'],
            table_dict[2]['training accuracy'],
            table_dict[3]['training accuracy'],
            table_dict[4]['training accuracy'])
 
-    print '\\multicolumn{1}{|l|}{Testing Accuracy} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} & \\multicolumn{2}{c|}{%4.2f\\%%} \\\\ \\hline' % \
+    print '\\multicolumn{1}{|l|}{Testing Accuracy} & %4.2f\\%% & %4.2f\\%% & %4.2f\\%% & %4.2f\\%% & %4.2f\\%% \\\\ \\hline' % \
           (table_dict[0]['testing accuracy'],
            table_dict[1]['testing accuracy'],
            table_dict[2]['testing accuracy'],
