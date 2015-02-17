@@ -223,9 +223,21 @@ def diagonal_covariance(data_set):
 
 def kernelized_logistic_regression(training_features, training_targets, testing_features, testing_targets):
 
-
-
     return 0
+
+
+def build_kernel_matrix(features, variance):
+
+    k = features.shape[0]
+
+    kernel = numpy.empty([k, k], dtype=float)
+
+    for i in range(0, k):
+        for j in range(0, k):
+            kernel[i, j] = gaussian_kernel(features[i], features[j], variance)
+
+
+    return kernel
 
 
 def gaussian_kernel(vector_x, vector_z, variance):

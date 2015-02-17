@@ -175,8 +175,11 @@ shatter all configurations of 4 points. However, it would not be able to do so f
 configuration of 5 points.
 \subsection*{C)}
 The VC-dimension of any type of boolean combination of 2 linear classifiers is
-6. The reasoning for this is similar to the previous question. This classifier
-would not be able to label 2 extremities of 5 points in a die configuration.
+6. The reason is that we are not limited by conjunctions. This limitation is what
+prevented us from shattering all configurations of 5 points in the previous example.
+Now that this limitation is removed, we can succesfully shatter all combinations of 5
+and we can atleast shatter one combination of 6 but not all. As such, the VC-dimension
+in this case is 6.
 
 \section*{Question 3}
 
@@ -332,6 +335,10 @@ Combining equation 16, 17 and 19 we obtain the likelihood of $\alpha$
   }
   \right)
   K(X_I,X)
+\end{equation}
+
+\begin{equation}
+    \alpha_{t+1} = \alpha_t + \gamma K(y - \hat{y})
 \end{equation}
 
 \subsection*{E)}
