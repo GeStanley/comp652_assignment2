@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.utils import shuffle
 
 
-def five_fold_cross_validation(feature_array, target_vector, model):
+def five_fold_cross_validation(feature_array, target_vector, model, cov_type='full'):
 
     complete_array = numpy.append(feature_array, target_vector[:, numpy.newaxis], axis=1)
 
@@ -41,11 +41,12 @@ def five_fold_cross_validation(feature_array, target_vector, model):
                                                          training_target,
                                                          testing_features,
                                                          testing_target)
-        elif model == 'bayesian':
+        elif model == 'gaussian':
             returned_statistics[i] = gaussian_discriminant_analysis(training_features,
                                                                     training_target,
                                                                     testing_features,
-                                                                    testing_target)
+                                                                    testing_target,
+                                                                    cov_type)
 
 
     return returned_statistics
@@ -73,6 +74,7 @@ def logistic_regression(training_features, training_targets, testing_features, t
                  'testing accuracy': testing_accuracy}
 
     return fold_data
+
 
 def average_example_log_likelihood(class_likelihoods, targets):
 
@@ -129,7 +131,7 @@ def average_example_log_likelihood(class_likelihoods, targets):
 #     return weights
 
 
-def gaussian_discriminant_analysis(training_features, training_targets, testing_features, testing_targets):
+def gaussian_discriminant_analysis(training_features, training_targets, testing_features, testing_targets, cov_type='full'):
 
     train_data_set = numpy.append(training_features, training_targets[:, numpy.newaxis], axis=1)
     test_data_set = numpy.append(testing_features, testing_targets[:, numpy.newaxis], axis=1)
@@ -138,11 +140,16 @@ def gaussian_discriminant_analysis(training_features, training_targets, testing_
     test_log_likelihoods = numpy.empty([testing_features.shape[0], 2], dtype=float)
 
     for y in range(0, 2):
+        # subset the data into one of the two classes
         train_sub_set = train_data_set[train_data_set[:, train_data_set.shape[1] - 1] == y, :-1]
 
         prior = float(train_sub_set.shape[0]) / float(train_data_set.shape[0])
         mean = numpy.mean(train_sub_set, axis=0)
-        covariance_matrix = numpy.cov(train_data_set[:, :-1].T)
+
+        if cov_type == 'full':
+            covariance_matrix = numpy.cov(train_data_set[:, :-1].T)
+        elif cov_type == 'diagonal':
+            covariance_matrix = diagonal_covariance(train_data_set[:, :-1].T)
 
         for i in range(0, train_data_set.shape[0]-1):
             row = train_data_set[i, :-1]
@@ -154,6 +161,7 @@ def gaussian_discriminant_analysis(training_features, training_targets, testing_
 
             test_log_likelihoods[i, y] = gaussian_log_likelihood_calculation(prior, mean, covariance_matrix, row)
 
+
     train_prediction = gaussian_classify(train_log_likelihoods)
     test_prediction = gaussian_classify(test_log_likelihoods)
 
@@ -163,8 +171,10 @@ def gaussian_discriminant_analysis(training_features, training_targets, testing_
     testing_accurate = numpy.sum(test_prediction == testing_targets)
     testing_accuracy = float(testing_accurate) / float(testing_targets.size)
 
-    train_avg_likelihood = numpy.average(train_log_likelihoods, axis=0)
-    test_avg_likelihood = numpy.average(test_log_likelihoods, axis=0)
+    train_avg_likelihood = average_example_log_likelihood(train_log_likelihoods,
+                                                          training_targets)
+    test_avg_likelihood = average_example_log_likelihood(test_log_likelihoods,
+                                                         testing_targets)
 
     fold_data = {'log L train': train_avg_likelihood,
                  'log L test': test_avg_likelihood,
@@ -201,13 +211,41 @@ def gaussian_classify(likelihood_array):
     return prediction
 
 
+def diagonal_covariance(data_set):
+    full_cov = numpy.cov(data_set)
+    matrix = numpy.zeros([data_set.shape[0], data_set.shape[0]])
+
+    for i in range(0, full_cov.shape[0]):
+        matrix[i, i] = full_cov[i, i]
+
+    return matrix
+
+
+def kernelized_logistic_regression(training_features, training_targets, testing_features, testing_targets):
+
+
+
+    return 0
+
+
+def gaussian_kernel(vector_x, vector_z, variance):
+
+    difference = (vector_x - vector_z)
+
+    squared = numpy.linalg.norm(difference) ** 2
+
+    division = -squared/(2*variance ** 2)
+
+    return numpy.exp(division)
+
+
 def generate_latex_table(table_dict):
     print '\\begin{table}[h]'
     print ' \\begin{tabular}{l|c|c|c|c|c|}'
     print ' \\cline{2-6}'
 
     print '     & \\multicolumn{5}{c|}{Folds}      \\\\ \\cline{2-6}'
-    print '     &  1  &  2  &  3  &  4  &  5 \\ \hline'
+    print '     &  1  &  2  &  3  &  4  &  5 \\\\ \hline'
 
     print '\\multicolumn{1}{|c|}{log L Train} & %5.3f & %5.3f & %5.3f & %5.3f & %5.3f  \\\\ \\hline' % \
           (table_dict[0]['log L train'],
@@ -247,13 +285,26 @@ if __name__ == '__main__':
     array_x = numpy.loadtxt('wpbcx.dat', float)
     vector_y = numpy.loadtxt('wpbcy.dat', float)
 
-    #stats = five_fold_cross_validation(array_x, vector_y, model='bayesian')
+    #############
+    # question 4 a
+    #############
     stats = five_fold_cross_validation(array_x, vector_y, model='logistic')
-
-
-    print stats
-
     generate_latex_table(stats)
+
+    #############
+    # question 4 b
+    #############
+    stats = five_fold_cross_validation(array_x, vector_y, model='gaussian', cov_type='diagonal')
+    generate_latex_table(stats)
+
+    #############
+    # question 4 c
+    #############
+    stats = five_fold_cross_validation(array_x, vector_y, model='gaussian')
+    generate_latex_table(stats)
+
+
+
 
 
 
