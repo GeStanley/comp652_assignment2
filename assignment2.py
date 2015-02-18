@@ -47,6 +47,11 @@ def five_fold_cross_validation(feature_array, target_vector, model, cov_type='fu
                                                                     testing_features,
                                                                     testing_target,
                                                                     cov_type)
+        elif model == 'klr':
+            returned_statistics[i] = kernelized_logistic_regression(training_features,
+                                                                    training_target,
+                                                                    testing_features,
+                                                                    testing_target)
 
 
     return returned_statistics
@@ -89,47 +94,6 @@ def average_example_log_likelihood(class_likelihoods, targets):
     return log_likelihood_sum / m
 
 
-# def calculate_sigmoid_hypothesis(weights, feature_vector):
-#
-#     exponent = numpy.dot(weights.T, feature_vector)
-#
-#     return 1/(1+math.exp(exponent))
-#
-# def calculate_sigmoid_hypothesis_vector(weights, feature_array):
-#
-#     vector = numpy.empty(0, dtype=float)
-#
-#     for i in range(0, feature_array.shape[0]):
-#         hypothesis = calculate_sigmoid_hypothesis(weights, feature_array[i])
-#
-#         vector = numpy.append(vector, [hypothesis], axis=0)
-#
-#
-#     return vector
-#
-# def calculate_loss(feature_array, target_vector, weights):
-#
-#     hypothesis_vector = calculate_sigmoid_hypothesis_vector(weights, feature_array)
-#
-#     error = hypothesis_vector - target_vector
-#     gradient = numpy.dot(feature_array.T, error)
-#
-#     return gradient
-#
-# def logistic_regression(feature_array, target_vector, learning_rate=0.001, precision=0.000001):
-#
-#     weights = numpy.ones(feature_array.shape[1], dtype=float)
-#
-#     step = learning_rate * calculate_loss(feature_array, target_vector, weights)
-#
-#     while abs(numpy.sum(step)) > precision:
-#
-#         weights += step
-#         step = learning_rate * calculate_loss(feature_array, target_vector, weights)
-#
-#
-#     return weights
-
 
 def gaussian_discriminant_analysis(training_features, training_targets, testing_features, testing_targets, cov_type='full'):
 
@@ -162,8 +126,8 @@ def gaussian_discriminant_analysis(training_features, training_targets, testing_
             test_log_likelihoods[i, y] = gaussian_log_likelihood_calculation(prior, mean, covariance_matrix, row)
 
 
-    train_prediction = gaussian_classify(train_log_likelihoods)
-    test_prediction = gaussian_classify(test_log_likelihoods)
+    train_prediction = log_likelihood_classify(train_log_likelihoods)
+    test_prediction = log_likelihood_classify(test_log_likelihoods)
 
     training_accurate = numpy.sum(train_prediction == training_targets)
     training_accuracy = float(training_accurate) / float(training_targets.size)
@@ -198,9 +162,9 @@ def gaussian_log_likelihood_calculation(prior, mean, covariance_matrix, features
     return left + mid - 1/2 * right
 
 
-def gaussian_classify(likelihood_array):
+def log_likelihood_classify(likelihood_array):
 
-    prediction = numpy.empty([likelihood_array.shape[0]], dtype=int)
+    prediction = numpy.zeros([likelihood_array.shape[0]], dtype=int)
 
     for i in range(0, likelihood_array.shape[0]):
         if likelihood_array[i, 0] > likelihood_array[i, 1]:
@@ -221,21 +185,109 @@ def diagonal_covariance(data_set):
     return matrix
 
 
-def kernelized_logistic_regression(training_features, training_targets, testing_features, testing_targets):
+def kernelized_logistic_regression(training_features, training_targets, testing_features, testing_targets,
+                                   precision=0.01, learning_rate=0.7, variance=1.0, max_iter=100):
 
-    return 0
+    kernel = build_kernel_matrix(training_features, variance)
+
+    alphas = numpy.zeros([training_features.shape[0], 1], dtype=float)
+
+    hypothesis = klr_build_hypothesis_vector(training_features, alphas, variance)
+    gradient = klr_gradient(kernel, training_targets, hypothesis)
+
+
+    iteration = 0
+
+    while precision < gradient.all() and iteration < max_iter:
+
+        iteration += 1
+
+        hypothesis = klr_build_hypothesis_vector(training_features, alphas, variance)
+        gradient = klr_gradient(kernel, training_targets, hypothesis)
+
+        alphas -= learning_rate * gradient
+
+
+    # get the log likelihoods from the newly training alphas
+    train_log_likelihoods = klr_build_log_likelihood_array(training_features, alphas, variance, training_features)
+    test_log_likelihoods = klr_build_log_likelihood_array(training_features, alphas, variance, testing_features)
+
+    # determine the predictions of the model
+    train_prediction = log_likelihood_classify(train_log_likelihoods)
+    test_prediction = log_likelihood_classify(test_log_likelihoods)
+
+    # calculate the training accuracy of the model
+    training_accurate = numpy.sum(train_prediction == training_targets)
+    training_accuracy = float(training_accurate) / float(training_targets.size)
+
+    # calculate the testing accuracy of the model
+    testing_accurate = numpy.sum(test_prediction == testing_targets)
+    testing_accuracy = float(testing_accurate) / float(testing_targets.size)
+
+    train_avg_likelihood = average_example_log_likelihood(train_log_likelihoods,
+                                                          training_targets)
+    test_avg_likelihood = average_example_log_likelihood(test_log_likelihoods,
+                                                         testing_targets)
+
+    fold_data = {'log L train': train_avg_likelihood,
+                 'log L test': test_avg_likelihood,
+                 'training accuracy': training_accuracy,
+                 'testing accuracy': testing_accuracy}
+
+    return fold_data
+
+
+def klr_build_log_likelihood_array(trained_features, alphas, variance, features):
+
+    log_likelihoods = numpy.zeros([features.shape[0], 2], dtype=float)
+
+    for i in range(0, features.shape[0]):
+        row = features[i]
+
+        log_likelihoods[i, 0] = klr_log_likelihood_calculation(trained_features, alphas, variance, row, 0)
+        log_likelihoods[i, 1] = klr_log_likelihood_calculation(trained_features, alphas, variance, row, 1)
+
+    return log_likelihoods
+
+
+def klr_log_likelihood_calculation(features, alphas, variance, x_vector, y):
+    if y == 1:
+        return numpy.log(klr_hypothesis(features, alphas, variance, x_vector))
+    elif y == 0:
+        return numpy.log(1 - klr_hypothesis(features, alphas, variance, x_vector))
+
+def klr_build_hypothesis_vector(training_features, alphas, variance):
+
+    hypotheses = numpy.zeros([training_features.shape[0], 1], dtype='float')
+
+    for i in range(0, training_features.shape[0]):
+        row = training_features[i]
+        hypotheses[i] = klr_hypothesis(training_features, alphas, variance, row)
+
+    return hypotheses
+
+
+def klr_hypothesis(features, alphas, variance, x_input):
+
+    exponent = 0
+
+    for i in range(0, features.shape[0]):
+        exponent += alphas[i] * gaussian_kernel(features[i], x_input, variance)
+
+    denominator = 1 + numpy.exp(exponent)
+
+    return 1 / denominator
 
 
 def build_kernel_matrix(features, variance):
 
     k = features.shape[0]
 
-    kernel = numpy.empty([k, k], dtype=float)
+    kernel = numpy.zeros([k, k], dtype=float)
 
     for i in range(0, k):
         for j in range(0, k):
             kernel[i, j] = gaussian_kernel(features[i], features[j], variance)
-
 
     return kernel
 
@@ -246,9 +298,18 @@ def gaussian_kernel(vector_x, vector_z, variance):
 
     squared = numpy.linalg.norm(difference) ** 2
 
-    division = -squared/(2*variance ** 2)
+    division = -squared/(2*variance)
 
     return numpy.exp(division)
+
+
+def klr_gradient(kernel, targets, hypotheses):
+
+    error = targets[:, numpy.newaxis] - hypotheses
+
+    gradient = numpy.dot(kernel.T, error)
+
+    return gradient
 
 
 def generate_latex_table(table_dict):
@@ -315,31 +376,8 @@ if __name__ == '__main__':
     stats = five_fold_cross_validation(array_x, vector_y, model='gaussian')
     generate_latex_table(stats)
 
-
-
-
-
-
-    #weights = logistic_regression(array_x, vector_y)
-
-
-    # logReg = LogisticRegression()
-    # logReg.fit(array_x, vector_y)
-    #
-    # #print weights
-    # print logReg.coef_
-    # # for i in range(0, array_x.shape[1]):
-    # #     print calculate_sigmoid_hypothesis(weights, array_x[i,])
-    #
-    # print logReg.predict_proba(array_x)
-
-    # print array_x.shape
-    #
-    # logReg = LogisticRegression()
-    # logReg.fit(array_x, vector_y)
-    #
-    # log_probability = logReg.predict_log_proba(array_x)
-    #
-    # print logReg.coef_.shape
-    # print log_probability.shape
-    # print log_probability
+    #############
+    # question 4 d
+    #############
+    stats = five_fold_cross_validation(array_x, vector_y, model='klr')
+    generate_latex_table(stats)

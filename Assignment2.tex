@@ -300,7 +300,6 @@ Combining equation 16, 17 and 19 we obtain the likelihood of $\alpha$
 
 \begin{equation}
   \log L(\alpha) =
-  - \left(
   \sum_{i=1}^{n} y_i
   \log
   \sigma(\sum_{j=1}^{n}\alpha_iK(X_j,X))
@@ -308,7 +307,6 @@ Combining equation 16, 17 and 19 we obtain the likelihood of $\alpha$
   (1-y_i)
   \log
   (1+\sigma(\sum_{j=1}^{n}\alpha_iK(X_j,X)))
-  \right)
 \end{equation}
 Defining $h(X)=\sigma(\sum_{i=1}^{n}\alpha_i K(X_i,X))$ the gradient of $\log L(w) wrt \alpha$
 
@@ -342,6 +340,64 @@ Therefore the gradient descent algorithm becomes:
     \alpha_{t+1} = \alpha_t + \gamma K^T(Y - \hat{Y})
 \end{equation}
 
-\subsection*{E)}
 
+\begin{table}[h]
+ \begin{tabular}{l|c|c|c|c|c|}
+ \cline{2-6}
+     & \multicolumn{5}{c|}{Folds}      \\ \cline{2-6}
+     &  1  &  2  &  3  &  4  &  5 \\ \hline
+\multicolumn{1}{|c|}{log L Train} & -0.014 & -0.014 & -0.014 & -0.014 & -0.014  \\ \hline
+\multicolumn{1}{|c|}{log L Test} & -0.655 & -0.662 & -0.660 & -0.665 & -0.677  \\ \hline
+\multicolumn{1}{|l|}{Training Accuracy} & 1.00\% & 1.00\% & 1.00\% & 1.00\% & 1.00\% \\ \hline
+\multicolumn{1}{|l|}{Testing Accuracy} & 0.72\% & 0.72\% & 0.67\% & 0.72\% & 0.76\% \\ \hline
+\end{tabular}
+\end{table}
+\subsection*{E)}
+\subsection*{Five fold cross validation}
+Five fold cross validation was facilitated by the numpy library of Python's Scipy
+package as well as some methods from the ScikitLearn package.\\
+
+The first step was to load the two dat files into numpy arrays. Following this ScikitLearn's
+shuffle method was used with a random seed of 125. Once the data was properly shuffled
+it was split into 5 sections with numpy's split method. This allowed for the grouping of data into
+training and testing subsets. In the first fold the first split index was used as the
+testing set and in the second fold, the second index, and so on and so forth. The remaining 4
+indices were used as the training data.\\
+
+This procedure was used to train and test logistic regression, Gaussian discriminant
+analysis and kernelized logistic regression.
+\subsection*{Logistic Regression}
+For logistic regression ScikitLearn's LogisticRegression class was used. The model
+was fitted using the training data from the five fold cross validation procedure.\\
+
+From there, the predict log proba method of the class was used to predict log likelihoods
+of both classes of the model. In order to compute the average log likelihood, the
+greatest of the two were added together and subsequently divided by the quantity
+of examples. This process was done for both the training and the testing data set.\\
+
+The accuracy was caculated by counting the quantity of correctly classified targets
+and then dividing by the amount of examples. This was done for both the training and
+testing data sets.
+\subsection*{Gaussian Discriminant Analysis}
+Gaussian discriminant analysis was implement with customized code. The modelizing step
+involved computing a prior, mean and covariance matrix for both example with 0 targets
+and 1 targets. Prior was calculated by dividing the amount of targets of type 0 and 1 by
+the total amount of examples. Mean was calculated using numpy's mean method and the
+covariance matrix was computed using numpy's cov method. To compute the diagonal matrix,
+a full matrix was computed at first, and subsequently all points where $i\neq j$ were set to 0.\\
+
+To calculate the log likelihood of features the following formula was used:
+\begin{equation}
+    \log L(X) = \log \pi + X^T \sigma^{-1} \mu -\frac{1}{2} \mu^T \sigma^{-1}\mu
+\end{equation}
+Once calculated, the class with the highest log likelihood was chosen as the prediction. Average
+log likelihood and accuracy were calculated in the same manner as with logistic regression.
+
+\subsection*{Kernelized Logistic Regression}
+Kernelized logistic regression was implemented with customized code. The kernel used
+was a gaussian kernel defined by :
+\begin{equation}
+    K(X, Z) = \exp \left(-\frac{\| X - Z \|^2}{2\sigma^2}\right)
+\end{equation}
+where $\sigma = 1$. 
 \end{document}
