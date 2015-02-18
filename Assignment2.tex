@@ -94,13 +94,13 @@ vectors of the instances:
 \begin{equation}
   K(x,z) = \phi (x) \cdot \phi (x)
 \end{equation}
-where $\phi$ is a feature maping of input features to a vector space. Further more,
+where $\phi$ is a feature mapping of input features to a vector space. Further more,
 as described by Bishop(2006) p.296 a kernel function can be a construction of kernel
 functions such that
 \begin{equation}
   k(x,z) = k_1(x,z) + k_2(x,z)
 \end{equation}
-In this particular case it would be usefull to decompose our $K_l$ kernel function
+In this particular case it would be useful to decompose our $K_l$ kernel function
 into:
 \begin{equation}
   k_l(x,z) = k_1(x,z) + k_2(x,z) + ... + k_l(x,z)
@@ -125,10 +125,10 @@ function and have thus demonstrated that it is a kernel function.
 \subsection*{B)}
 Two differences will be noticeable between the kernel matrices $K_l$ and $K_{l+1}$.
 The first will be that the values of points $K_ij$ in the matrix where the similarities
-between words are of more importance will increase by atleast 1. Secondly, the points
+between words are of more importance will increase by at least 1. Secondly, the points
 along the diagonal of the matrix where $i=j$ will necessarily increase there the
 length of the words is greater then or equal to $l+1$. As such, the result will be that
-the values along the diagonal of the matrix will necessarily increase by atleast
+the values along the diagonal of the matrix will necessarily increase by at least
 the same amount as other values in their respective rows and columns.
 
 Therefor, the tendency of the matrix is to become more diagonal in nature as $l$
@@ -143,7 +143,7 @@ then this.
 Yes. Words with a longer length will have a tendency of having larger values of
 for any given $l$ of the kernel function. For example, $K_2("bird","bird")=7$ and
 $K_2("apple","apple")=9$. As kernel functions are meant to be a measure of
-similarity between vectors this result is missleading.
+similarity between vectors this result is misleading.
 
 A potential adjustment to this correlation would be to divide the result by some
 value to turn the comparison into a percentage value. I believe an appropriate adjustment
@@ -170,23 +170,18 @@ to the dimension associated to this sequence but 1 to all others.
 \subsection*{A)}
 \includegraphics[width=175px, keepaspectratio]{3points.jpg}
 \subsection*{B)}
-The VC-dimension of this hypthesis class is 5. This is because it can
+The VC-dimension of this hypothesis class is 5. This is because it can
 shatter all configurations of 4 points. However, it would not be able to do so for all
 configuration of 5 points.
 \subsection*{C)}
 The VC-dimension of any type of boolean combination of 2 linear classifiers is
 6. The reason is that we are not limited by conjunctions. This limitation is what
 prevented us from shattering all configurations of 5 points in the previous example.
-Now that this limitation is removed, we can succesfully shatter all combinations of 5
-and we can atleast shatter one combination of 6 but not all. As such, the VC-dimension
+Now that this limitation is removed, we can successfully shatter all combinations of 5
+and we can at least shatter one combination of 6 but not all. As such, the VC-dimension
 in this case is 6.
 
 \section*{Question 3}
-
-
-$\left\{ (x_1,y_1),(x_2,y_2),...,(x_n,y_n)\right\}$.
-Let $\delta[y=i]$ be 1 if $y=i$ and 0 otherwise. We write the likelihood function for a set of hypotheses and a given data set $D$ as follows:
-$$L(h;D)=\prod_{i=1}^{n}\sum_{j=1}^{K}\delta[y_i=j]h^j(x_i)$$
 
 \subsection*{A)}
 Given the likelihood of an example x belonging to class k as being :
@@ -195,54 +190,40 @@ Given the likelihood of an example x belonging to class k as being :
   L(k | x) = 1 - \sum_{i=1}^{K-1}h^i(x)
 \end{equation}
 
-In order to compute the likelihood of a set of hypotheses a composite likelihood
-method can be used. This will approximate the likelihood of a set
-of hypotheses given data set D:
+From Bishop (2006), the likelihood function of a multiclass
+logistic regression can be calculated as:
 
 \begin{equation}
-  L(H | D) = \prod_{j=1}^K  L(h_j | d_j)
+  L(T | w_1, ..., w_k)
+  = \prod_{n=1}^N \prod_{k=1}^{K}  p(C_k | \phi_n)^{t_{nk}}
+  = \prod_{n=1}^N \prod_{k=1}^{K}  y_{nk}^{t_nk}
 \end{equation}
 
-Combining the likelihood of a given likelihood function with the composite method
-we obtain the following likelihood function:
+Because the exponent $t_{nk} = 0$ when an element
+is not of a particular class k the second product is equivalent to equation
+7. As such, the likelihood function for a set of hypotheses and a given
+data set D can be expressed as :
 
 \begin{equation}
-  L(H | D) = \prod_{j=1}^K
-  \left(
-  1 - \sum_{i=1}^{K-1}w_i^T x_i
-  \right)
+  L(T | w_1, ..., w_k; D)
+  = \prod_{n=1}^N \prod_{k=1}^{K}  y_{nk}^{t_nk}
 \end{equation}
 
-This can be seen as the product of all the hypothesis likelihoods.
+where $y_nk=y_k(\phi_n)$.
 
 \subsection*{B)}
-\begin{equation}
-  \log L(H | D) = \log \sum_{j=1}^K
-  \left(
-  1 - \sum_{i=1}^{K-1}h_i(x_i)
-  \right)
-\end{equation}
 
 \begin{equation}
-  \log L(H | D) = \log
-  \sum_{j=1}^K
-  1 - \sum_{j=1}^K \sum_{i=1}^{K-1}h_i(x_i)
+  -\log p(T|w_1,...,w_K)= -\sum_{n=1}{N}\sum_{k=1}{K}t_{nk}\log y_{nk}
 \end{equation}
-The optimization is thus about minimizing:
 \begin{equation}
-  \sum_{j=1}^K \sum_{i=1}^{K-1}w_i^T x_i
+  \nabla_{w_j} E( w_1, ..., w_k)
+  = \sum_{n=1}^N (y_{nj} - t_{nk}) \phi_n
 \end{equation}
-The loss function thus becomes:
 \begin{equation}
-  \log L(H | D) = \sum_{j=1}^K \sum_{i=1}^{K-1}w_i^T x_i
+  \nabla_{w_k} \nabla_{w_j} E( w_1, ..., w_k)
+  = \sum_{n=1}^N y_nk(I_{kj} - y_{nj}) \phi_n \phi_n^T
 \end{equation}
-
-\begin{equation}
-  \frac{\partial}{\partial w} \log L(H | D) =
-  \frac{\partial}{\partial w}
-  \sum_{j=1}^K \sum_{i=1}^{K-1} x_i
-\end{equation}
-
 
 \subsection*{C)}
 
@@ -308,37 +289,57 @@ We can now express the standard logistic regression as:
 Using a function $\phi$ mapping X from a low to a high dimension space we obtain
 the following logistic regression:
 \begin{equation}
-  P(Y = 1 | \phi(X)) = \sigma(w_0 + \sum_{i=1}^{K}w_i\phi(X)_i)
+  P(Y = 1 | \phi(X)) = \sigma(\sum_{i=1}^{K}w_i\phi(X)_i)
 \end{equation}
-where K is the dimension of the new higher dimension space.\\
+where K is the dimension of the new higher dimension space.
 Using the kernel trick:
 \begin{equation}
-  P(Y = 1 | \phi(X)) = \sigma(\alpha_0 + \sum_{i=1}^{n}\alpha_iK(X_i,X))
+  P(Y = 1 | \phi(X)) = \sigma(\sum_{i=1}^{n}\alpha_iK(X_i,X))
 \end{equation}
 Combining equation 16, 17 and 19 we obtain the likelihood of $\alpha$
 
 \begin{equation}
   \log L(\alpha) =
-  \sum_{l=1}^{R} Y^l
-  (\alpha_0 + \sum_{j=1}^{R}\alpha_j(X_j,X))
+  - \left(
+  \sum_{i=1}^{n} y_i
+  \log
+  \sigma(\sum_{j=1}^{n}\alpha_iK(X_j,X))
   -
-  \log(1+\exp(\alpha_0 + \sum_{j=1}^{R}\alpha_j(X_j,X)))
-\end{equation}
-
-\begin{equation}
-  \frac{\partial}{\partial \alpha_i} l(\alpha) =
-  \sum_{l=1}^{R}\left(Y^l -
-  \frac{
-  \exp(\alpha_0 + \sum_{j=1}^{R}\alpha_j(X_j,X))
-  }{
-  1+\exp(\alpha_0 + \sum_{j=1}^{R}\alpha_j(X_j,X))
-  }
+  (1-y_i)
+  \log
+  (1+\sigma(\sum_{j=1}^{n}\alpha_iK(X_j,X)))
   \right)
-  K(X_I,X)
 \end{equation}
+Defining $h(X)=\sigma(\sum_{i=1}^{n}\alpha_i K(X_i,X))$ the gradient of $\log L(w) wrt \alpha$
 
 \begin{equation}
-    \alpha_{t+1} = \alpha_t + \gamma K(y - \hat{y})
+  \begin{aligned}
+    \nabla
+    \log L(\alpha) &=
+    \sum_i y_i
+    \frac{1}{h(X_i)}
+    h(X_i)
+    (1-h(X_i))
+    \sum_{j=1}^{n}K(X_j,X_i)\\
+    &+
+    (1-y_i)
+    \frac{1}{1-h(X_i)}
+    h(X_i)
+    (1-h(X_i))
+    \sum_{j=1}^{n}K(X_j,X_i)
+    (-1)\\
+    &=\sum_i
+    \sum_{j=1}^{n}K(X_j,X_i)
+    (y_i-y_ih(X_i)-h(X_i)+y_ih(X_i))\\
+    &=\sum_i(y_i - h(X_i))\sum_{j=1}^{n}K(X_j,X_i)\\
+    &=K^T(Y-\hat{Y})
+  \end{aligned}
+\end{equation}
+
+Therefore the gradient descent algorithm becomes:
+
+\begin{equation}
+    \alpha_{t+1} = \alpha_t + \gamma K^T(Y - \hat{Y})
 \end{equation}
 
 \subsection*{E)}
